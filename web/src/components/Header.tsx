@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Home, Settings, Menu, X, Moon, Sun, Brain } from 'lucide-react'
+import { Home, Settings, Menu, X, Moon, Sun, Brain, LogOut, ChevronDown } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createBrowserClient } from '@/utils/supabase'
-import { debounce } from '@/utils/helper'
+import { cn } from '@/utils/cn'
 
 export const MotionDiv = dynamic(
   () => import('framer-motion').then((mod) => mod.motion.div),
@@ -15,218 +15,123 @@ export const MotionButton = dynamic(
   () => import('framer-motion').then((mod) => mod.motion.button),
   { ssr: false },
 )
+export const AnimatePresence = dynamic(
+  () => import('framer-motion').then((mod) => mod.AnimatePresence),
+  { ssr: false },
+)
 
 export const AuthHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [activeSubmenu, setActiveSubmenu] = useState(null)
+  const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null)
   const { theme, setTheme } = useTheme()
   const [logoutLoading, setLogoutLoading] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
+      setIsScrolled(window.scrollY > 20)
     }
-
     window.addEventListener('scroll', handleScroll)
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light')
-  }
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
-
-  const handleMouseEnter = (index: any) => {
-    setActiveSubmenu(index)
-  }
-
-  const closeSubMenu = (clicked = false) => {
-    if (clicked) return setActiveSubmenu(null)
-
-    const submenu = document.getElementById('submenu')
-
-    if (!submenu?.contains(document.activeElement)) {
-      setActiveSubmenu(null)
-    }
-  }
-
-  const handleMouseLeave = () => {
-    debounce(closeSubMenu, 200)
-  }
-
   const navItems = [
+    { name: 'Stroke Detection', href: '/detect-stroke/image' },
     {
-      name: 'Stroke Detection by Image',
-      href: '/detect-stroke/image',
-    },
-    {
-      name: 'Chat Bots',
-      href: '/ai/diagnosis',
+      name: 'AI Helpers',
+      href: '#',
       submenu: [
-        {
-          name: 'Stroke Detection',
-          href: '/ai/diagnosis',
-        },
-        {
-          name: 'Caregiver',
-          href: '/ai/caregiver',
-        },
-        {
-          name: 'Rehabilitation',
-          href: '/ai/rehabilitation',
-        },
+        { name: 'Diagnosis', href: '/ai/diagnosis' },
+        { name: 'Caregiver', href: '/ai/caregiver' },
+        { name: 'Rehabilitation', href: '/ai/rehabilitation' },
       ],
     },
-    {
-      name: 'Reminders',
-      href: '/reminders',
-    },
+    { name: 'Reminders', href: '/reminders' },
   ]
 
   const handleLogout = async () => {
     setLogoutLoading(true)
     const supabase = createBrowserClient()
     await supabase.auth.signOut()
-
-    setLogoutLoading(false)
     window.location.href = '/login'
   }
 
   return (
     <header
-      className={`z-50 w-full bg-gradient-to-b from-primary/20 to-primary/5 px-6 py-4 text-foreground backdrop-blur-md transition-all duration-300 dark:text-gray-200 ${
-        isScrolled ? 'fixed top-0 shadow-md' : ''
-      } toggle shadow-lg`}
+      className={cn(
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 py-4 px-6',
+        isScrolled ? 'bg-background/80 backdrop-blur-xl border-b border-white/10 py-3 shadow-2xl' : 'bg-transparent'
+      )}
     >
       <div className="container flex items-center justify-between mx-auto">
-        <MotionDiv
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Link href="/">
-            <span className="flex items-center text-3xl font-bold transition duration-300 text-primary hover:text-accent-foreground">
-              MedGPT
-            </span>
-          </Link>
-        </MotionDiv>
+        <Link href="/" className="flex items-center space-x-2 group">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+            <Brain className="text-primary-foreground" size={24} />
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-glow">MedGPT</span>
+        </Link>
+
         <nav className="hidden md:block">
-          <ul className="flex space-x-6">
+          <ul className="flex items-center space-x-8">
             {navItems.map((item, index) => (
               <li
                 key={item.name}
-                onMouseEnter={() => handleMouseEnter(index)}
-                onMouseLeave={handleMouseLeave}
                 className="relative"
+                onMouseEnter={() => setActiveSubmenu(index)}
+                onMouseLeave={() => setActiveSubmenu(null)}
               >
-                <Link href={item.href}>
-                  <span className="relative flex items-center px-2 py-1 transition duration-300 rounded group dark:hover:text-accent-foreground">
-                    <span className="ml-1 font-bold">{item.name}</span>
-                    <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent-foreground transition-all duration-300 group-hover:w-full dark:bg-accent-foreground"></span>
-                  </span>
+                <Link
+                  href={item.href}
+                  className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors flex items-center space-x-1"
+                >
+                  <span>{item.name}</span>
+                  {item.submenu && <ChevronDown size={14} className={cn("transition-transform", activeSubmenu === index && "rotate-180")} />}
                 </Link>
                 {item.submenu && activeSubmenu === index && (
-                  <ul
-                    id="submenu"
-                    className="absolute left-0 z-10 w-48 p-2 mt-2 transition-all duration-300 bg-white border rounded shadow-lg dark:bg-gray-800"
-                    onMouseEnter={() => handleMouseEnter(index)}
-                    onMouseLeave={() => closeSubMenu(false)}
+                  <MotionDiv
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute top-full left-0 mt-2 w-48 p-2 glass-dark rounded-2xl border border-white/10 shadow-2xl"
                   >
-                    {item.submenu.map((subItem) => (
-                      <li key={subItem.name} onClick={() => closeSubMenu(true)}>
-                        <Link href={subItem.href}>
-                          <span className="block px-4 py-2 transition-all duration-300 rounded text-md hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-accent-foreground">
-                            {subItem.name}
-                          </span>
-                        </Link>
-                      </li>
+                    {item.submenu.map((sub) => (
+                      <Link
+                        key={sub.name}
+                        href={sub.href}
+                        className="block px-4 py-2 text-sm rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                      >
+                        {sub.name}
+                      </Link>
                     ))}
-                  </ul>
+                  </MotionDiv>
                 )}
               </li>
             ))}
           </ul>
         </nav>
-        <div className="flex items-center">
-          <MotionButton
-            onClick={toggleTheme}
-            className="p-2 mr-4 transition duration-300 rounded-full bg-primary text-primary-foreground hover:border-primary hover:bg-accent hover:text-primary hover:shadow-lg"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2.5 rounded-xl glass border border-white/10 hover:bg-white/20 transition-all text-foreground"
           >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </MotionButton>
-          <MotionButton
-            className="relative items-center hidden px-4 py-2 text-lg font-bold transition duration-300 ease-in-out transform rounded-full shadow-lg group bg-primary text-primary-foreground hover:-translate-y-1 hover:scale-105 hover:bg-accent hover:text-accent-foreground md:flex"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <button
             onClick={handleLogout}
             disabled={logoutLoading}
+            className="hidden md:flex items-center space-x-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold shadow-lg shadow-primary/25 hover:scale-105 transition-all disabled:opacity-50"
           >
-            Sign Out
-          </MotionButton>
-          <MotionButton
-            onClick={toggleMenu}
-            className="p-2 transition duration-300 rounded-full bg-primary text-primary-foreground hover:border-primary hover:bg-accent hover:text-primary hover:shadow-lg md:hidden"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            <LogOut size={18} />
+            <span>Sign Out</span>
+          </button>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2.5 rounded-xl glass border border-white/10 text-foreground"
           >
-            {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </MotionButton>
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
-      {isMenuOpen && (
-        <MotionDiv
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className="mt-4 md:hidden"
-        >
-          <ul className="flex flex-col space-y-4">
-            {navItems.map((item) => (
-              <li key={item.name}>
-                <Link href={item.href}>
-                  <span className="relative flex items-center px-2 py-1 transition duration-300 rounded group dark:hover:text-accent-foreground">
-                    <span className="ml-1 font-bold">{item.name}</span>
-                  </span>
-                </Link>
-                {item.submenu && (
-                  <ul className="pl-4 mt-2 space-y-2">
-                    {item.submenu.map((subItem) => (
-                      <li key={subItem.name}>
-                        <Link href={subItem.href}>
-                          <span className="block px-4 py-2 text-sm transition duration-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-accent-foreground">
-                            {subItem.name}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-            <li>
-              <Link href="/login" passHref>
-                <MotionButton
-                  className="relative flex items-center justify-center w-full px-4 py-2 text-lg font-bold transition duration-300 ease-in-out transform rounded-full shadow-lg group bg-primary text-primary-foreground hover:-translate-y-1 hover:scale-105 hover:bg-accent hover:text-accent-foreground"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Sign Out
-                </MotionButton>
-              </Link>
-            </li>
-          </ul>
-        </MotionDiv>
-      )}
     </header>
   )
 }
@@ -237,130 +142,98 @@ const Header: React.FC = () => {
   const { theme, setTheme } = useTheme()
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
-    }
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light')
-  }
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
-
   const navItems = [
-    { name: 'Home', icon: <Home size={18} />, href: '#home' },
-    { name: 'Features', icon: <Settings size={18} />, href: '#features' },
-    { name: 'AI-Imaging', icon: <Brain size={18} />, href: '#ai-imaging' },
+    { name: 'Home', href: '#home' },
+    { name: 'Features', href: '#features' },
+    { name: 'Workflow', href: '#workflow' },
+    { name: 'AI Imaging', href: '#ai-imaging' },
   ]
 
   return (
     <header
-      className={`z-50 w-full bg-gradient-to-b from-primary/20 to-primary/5 px-6 py-4 text-foreground backdrop-blur-md transition-all duration-300 dark:text-gray-200 ${
-        isScrolled ? 'fixed top-0 shadow-md' : ''
-      } toggle shadow-lg`}
+      className={cn(
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 py-4 px-6',
+        isScrolled ? 'bg-background/80 backdrop-blur-xl border-b border-white/10 py-3 shadow-2xl' : 'bg-transparent'
+      )}
     >
       <div className="container flex items-center justify-between mx-auto">
-        <MotionDiv
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Link href="/">
-            <span className="flex items-center text-3xl font-bold transition duration-300 text-primary hover:text-accent-foreground">
-              MedGPT
-            </span>
-          </Link>
-        </MotionDiv>
+        <Link href="/" className="flex items-center space-x-2 group">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+            <Brain className="text-primary-foreground" size={24} />
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-glow">MedGPT</span>
+        </Link>
+
         <nav className="hidden md:block">
-          <ul className="flex space-x-6">
-            {navItems.map((item, index) => (
-              <MotionDiv
-                key={item.name}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Link href={item.href}>
-                  <span className="relative flex items-center px-2 py-1 transition duration-300 rounded group dark:hover:text-accent-foreground">
-                    {item.icon}
-                    <span className="ml-1 font-bold">{item.name}</span>
-                    <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-accent-foreground transition-all duration-300 group-hover:w-full dark:bg-accent-foreground"></span>
-                  </span>
-                </Link>
-              </MotionDiv>
-            ))}
-          </ul>
-        </nav>
-        <div className="flex items-center">
-          <MotionButton
-            onClick={toggleTheme}
-            className="p-2 mr-4 transition duration-300 rounded-full bg-primary text-primary-foreground hover:border-primary hover:bg-accent hover:text-primary hover:shadow-lg"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </MotionButton>
-          <Link href="/login">
-            <MotionButton
-              className="relative items-center hidden px-4 py-2 text-lg font-bold transition duration-300 ease-in-out transform rounded-full shadow-lg group bg-primary text-primary-foreground hover:-translate-y-1 hover:scale-105 hover:bg-accent hover:text-accent-foreground md:flex"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Login
-            </MotionButton>
-          </Link>
-          <MotionButton
-            onClick={toggleMenu}
-            className="p-2 transition duration-300 rounded-full bg-primary text-primary-foreground hover:border-primary hover:bg-accent hover:text-primary hover:shadow-lg md:hidden"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </MotionButton>
-        </div>
-      </div>
-      {isMenuOpen && (
-        <MotionDiv
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className="mt-4 md:hidden"
-        >
-          <ul className="flex flex-col space-y-4">
+          <ul className="flex items-center space-x-8">
             {navItems.map((item) => (
               <li key={item.name}>
-                <Link href={item.href}>
-                  <span className="relative flex items-center px-2 py-1 transition duration-300 rounded group dark:hover:text-accent-foreground">
-                    {item.icon}
-                    <span className="ml-1 font-bold">{item.name}</span>
-                  </span>
+                <Link
+                  href={item.href}
+                  className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
+                >
+                  {item.name}
                 </Link>
               </li>
             ))}
-            <li>
-              <Link href="/login" passHref>
-                <MotionButton
-                  className="relative flex items-center justify-center w-full px-4 py-2 text-lg font-bold transition duration-300 ease-in-out transform rounded-full shadow-lg group bg-primary text-primary-foreground hover:-translate-y-1 hover:scale-105 hover:bg-accent hover:text-accent-foreground"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Login
-                </MotionButton>
-              </Link>
-            </li>
           </ul>
-        </MotionDiv>
-      )}
+        </nav>
+
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2.5 rounded-xl glass border border-white/10 hover:bg-white/20 transition-all text-foreground"
+          >
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <Link href="/login">
+            <button className="hidden md:block px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold shadow-lg shadow-primary/25 hover:scale-105 transition-all">
+              Login
+            </button>
+          </Link>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2.5 rounded-xl glass border border-white/10 text-foreground"
+          >
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <MotionDiv
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden overflow-hidden glass-dark mt-4 rounded-2xl border border-white/10"
+          >
+            <ul className="p-4 space-y-2">
+              {navItems.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-3 text-base font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+              <li className="pt-2">
+                <Link href="/login" className="block w-full py-3 bg-primary text-primary-foreground rounded-xl text-center font-bold">
+                  Login
+                </Link>
+              </li>
+            </ul>
+          </MotionDiv>
+        )}
+      </AnimatePresence>
     </header>
   )
 }

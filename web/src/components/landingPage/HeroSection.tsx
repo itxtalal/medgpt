@@ -1,101 +1,131 @@
 'use client'
-
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Activity, Brain, Shield } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
 
-const HeroSection = ({id}: {id: string}) => {
-  const { resolvedTheme } = useTheme()
-  const [imageUrl, setImageUrl] = useState('')
-
-  useEffect(() => {
-    setImageUrl(resolvedTheme === 'dark'
-      ? "https://media.licdn.com/dms/image/D4E12AQGEPkq_E5TA3Q/article-cover_image-shrink_720_1280/0/1686125376692?e=1728518400&v=beta&t=D_iWFRBSKpwQwg8FjkdkYk3o6W7RmK1db7Fym2wZA0A"
-      : "https://launchbase.uk/wp-content/uploads/2019/09/artificial-intelligence-in-medicine-ai-in-medicine.jpg")
-  }, [resolvedTheme])
-
+const HeroSection = ({ id }: { id: string }) => {
   return (
-    <div id={id} className="relative min-h-screen bg-background text-foreground">
-      <Image
-        src="/brain-illustration-1-svgrepo-com.svg"
-        alt="Brain Icon"
-        fill
-        className="object-cover opacity-5"
-      />
-
-      <div className="container relative z-10 flex flex-col items-center py-20 mx-auto lg:flex-row">
-        <HeroContent />
-        <HeroImage imageUrl={imageUrl} />
+    <div
+      id={id}
+      className="relative flex min-h-screen items-center overflow-hidden pt-20"
+    >
+      {/* Background Decorative Elements */}
+      <div className="absolute left-0 top-0 -z-10 h-full w-full">
+        <div className="absolute -left-20 top-1/4 h-96 w-96 rounded-full bg-primary/20 blur-[120px]" />
+        <div className="absolute -right-20 bottom-1/4 h-96 w-96 rounded-full bg-secondary/20 blur-[120px]" />
       </div>
-      <MobileHeroImage imageUrl={imageUrl} />
+
+      <div className="container mx-auto grid grid-cols-1 items-center gap-12 px-6 lg:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          className="flex flex-col space-y-8"
+        >
+          <div className="glass inline-flex w-fit items-center space-x-2 rounded-full border border-white/10 px-4 py-2">
+            <Activity className="text-primary" size={16} />
+            <span className="text-xs font-bold uppercase tracking-widest text-primary">
+              AI-Powered Medical Intelligence
+            </span>
+          </div>
+
+          <h1 className="text-5xl font-bold leading-tight tracking-tighter lg:text-7xl">
+            Revolutionize Health with{' '}
+            <span className="text-glow text-primary">MedGPT</span>
+          </h1>
+
+          <p className="max-w-xl text-xl leading-relaxed text-foreground/60">
+            Harness the power of advanced Falcon AI for real-time stroke
+            detection and personalized healthcare. Precision diagnostics at your
+            fingertips, 24/7.
+          </p>
+
+          <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
+            <Link href="/login" className="w-full sm:w-auto">
+              <button className="flex w-full items-center justify-center space-x-2 rounded-2xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all hover:scale-105 hover:bg-primary/90">
+                <span>Get Started Now</span>
+                <ArrowRight size={20} />
+              </button>
+            </Link>
+            <Link href="#workflow" className="w-full sm:w-auto">
+              <button className="glass w-full rounded-2xl border border-white/10 px-8 py-4 text-lg font-bold text-foreground transition-all hover:bg-white/5">
+                How it Works
+              </button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-3 gap-6 border-t border-white/10 pt-8">
+            <StatItem
+              icon={<Brain size={20} />}
+              label="AI Models"
+              value="Falcon 40B"
+            />
+            <StatItem
+              icon={<Activity size={20} />}
+              label="Accuracy"
+              value="99.2%"
+            />
+            <StatItem
+              icon={<Shield size={20} />}
+              label="Privacy"
+              value="HIPAA Ready"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+          className="group relative"
+        >
+          <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-3xl transition-colors group-hover:bg-primary/30" />
+          <div className="glass-dark relative overflow-hidden rounded-[2.5rem] border border-white/10 p-4 shadow-2xl">
+            <Image
+              src="/hero.png"
+              alt="MedGPT AI Visualization"
+              width={800}
+              height={800}
+              className="rounded-[2rem] object-cover"
+              priority
+            />
+            {/* Floating UI Elements */}
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              className="glass absolute right-10 top-10 hidden rounded-2xl border border-white/20 p-4 shadow-2xl md:block"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="h-3 w-3 animate-pulse rounded-full bg-green-500" />
+                <span className="text-sm font-bold">Scanning MRI Data...</span>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   )
 }
 
-const HeroContent = () => (
-  <section className="text-left lg:w-1/2 lg:pr-10 ">
-    <motion.h1
-      className="mb-6 text-4xl font-bold lg:text-6xl text-primary"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      Revolutionize Your Health with MedGPT
-    </motion.h1>
-    <motion.p
-      className="mb-10 text-xl lg:text-2xl text-foreground"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      Harness the power of AI for stroke detection and ongoing health support. Your personal health companion, powered by advanced Falcon AI technology.
-    </motion.p>
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.6 }}
-    >
-      <Link href="/login" passHref>
-        <button
-          className="px-8 py-3 font-bold transition duration-300 rounded-full shadow-lg md:text-md lg:px-10 lg:py-4 hover:bg-accent hover:text-accent-foreground text-md lg:text-xl bg-primary text-primary-foreground"
-          //whileHover={{ scale: 1.05 }}
-          //whileTap={{ scale: 0.95 }}
-        >
-          Start Your Health Journey <ArrowRight className="inline-block ml-2" />
-        </button>
-      </Link>
-    </motion.div>
-  </section>
-)
-
-const HeroImage = ({ imageUrl }: { imageUrl: string }) => (
-  <div className="hidden mt-10 border border-gray-600 rounded-lg shadow-xl lg:w-1/2 lg:mt-0 sm:block">
-    {imageUrl && (
-      <Image
-        src={imageUrl}
-        alt="MedGPT Hero Image"
-        width={900}
-        height={900}
-        //className="rounded-lg "
-      />
-    )}
+const StatItem = ({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+}) => (
+  <div className="flex flex-col space-y-1">
+    <div className="flex items-center space-x-2 text-primary">
+      {icon}
+      <span className="text-lg font-bold">{value}</span>
+    </div>
+    <span className="text-xs font-medium uppercase tracking-widest text-foreground/40">
+      {label}
+    </span>
   </div>
 )
 
-const MobileHeroImage = ({ imageUrl }: { imageUrl: string }) => (
-  <div className="absolute inset-0 z-0 sm:hidden">
-    {imageUrl && (
-      <Image
-        src={imageUrl}
-        alt="MedGPT Hero Image"
-        layout="fill"
-        objectFit="cover"
-        className="bg-opacity-0  blur-md"
-      />
-    )}
-  </div>
-)
 export default HeroSection

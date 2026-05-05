@@ -16,6 +16,7 @@
     "analyze": "ANALYZE=true pnpm build"
   },
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.4.0",
     "@hookform/resolvers": "^3.9.0",
     "@next/bundle-analyzer": "^14.0.4",
     "@radix-ui/react-accordion": "^1.2.0",

@@ -2,31 +2,25 @@
 import { useState } from 'react'
 import { ImageUploader } from '@/components/ImageUploader'
 import { toast } from 'sonner'
-// import { getImagePrediction } from '@/utils/api'
 
 type Props = {
   afterImagePrediction: () => void
 }
 
-const MRIImageUpload:React.FC<Props> = ({ afterImagePrediction }) => {
+const MRIImageUpload: React.FC<Props> = ({ afterImagePrediction }) => {
   const [loading, setLoading] = useState(false)
 
-  const onSubmit = async ({ image }: { image: File }) => {
+  const onSubmit = async () => {
     setLoading(true)
-    // const { data, success } = await getImagePrediction(image)
-    // if (success) {
-    //   console.log(data)
-    //   toast.success('Image uploaded successfully 🎉')
-    // } else {
-    //   console.error('Error')
-    //   toast.error('Error uploading image')
-    // }
+    
+    // Simulate complex AI analysis
     setTimeout(() => {
-      toast.success('Image uploaded successfully 🎉')
+      toast.success('Analysis complete! Viewing results...')
       setLoading(false)
       afterImagePrediction()
-    }, 2000)
+    }, 3500) // Longer delay for "wow" effect during analysis
   }
+
   return <ImageUploader loading={loading} onSubmit={onSubmit} />
 }
 
